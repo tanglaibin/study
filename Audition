@@ -106,6 +106,227 @@ Servlet和JSP最主要的不同点在于JSP侧重于视图，Servlet主要用于
 Servlet如果要实现 html的功能，必须使用 Writer输出对应的 html,比较麻烦。而 JSP的情况是 Java和HTML可以组合成一个扩展名为 .jsp的文件 ,做界面展示比较方便而嵌入逻辑比较复杂。
 
 
+jsp有哪些内置对象?作用分别是什么? 
+9个内置的对象：  
+request 用户端请求，此请求会包含来自 GET/POST请求的参数  
+response 网页传回用户端的回应  
+pageContext 网页的属性是在这里管理  
+session 与请求有关的会话期  
+application servlet正在执行的内容  
+out 用来传送回应的输出  
+config servlet的构架部件  
+page JSP网页本身  
+exception 针对错误网页，未捕捉的例外  
+四大作用域：pageContext request session application 可以通过jstl从四大作用域中取值 .
+Jsp传递值 request session application cookie也能传值
+
+
+session和cookie的区别？
+Session和cookie都是会话(Seesion)跟踪技术。Cookie通过在客户端记录信息确定用户身份，Session通过在服务器端记录信息确定用户身份。但是Session的实现依赖于Cookie,sessionId(session的唯一标识需要存放在客户端).
+cookie 和session 的区别：
+1、cookie数据存放在客户的浏览器上， session数据放在服务器上。
+2、cookie不是很安全，别人可以分析存放在本地的 COOKIE并进行COOKIE欺骗
+   考虑到安全应当使用 session。
+3、session会在一定时间内保存在服务器上。当访问增多，会比较占用你服务器的性能 ,考虑到减轻服务器性能方面，应当使用 COOKIE。
+4、单个cookie保存的数据不能超过 4K，很多浏览器都限制一个站点最多保存 20个cookie。
+5、所以个人建议： 
+   将登陆信息 等重要信息存放为 SESSION
+   其他信息如果需要保留，可以放在 COOKIE中，比如购物车
+ 
+购物车最好使用cookie，但是cookie是可以在客户端禁用的，这时候我们要使用cookie+数据库的方式实现，当从cookie中不能取出数据时，就从数据库获取。
+
+
+MVC：
+M(Model) 模型 javabean
+V(View) 视图  html jsp volicity freemaker
+C(Control) 控制器  Servlet,Action
+ 
+Jsp+Servlet+javabean 最经典 mvc模式,实际上就是 model2的实现方式，就是把视图和逻辑隔离开来
+使用struts2和springmvc这样的 mvc框架后， jsp+核心控制器 +action+javabean
+
+MVC框架？
+是为了解决传统MVC模式(Jsp + Servlet + JavaBean)的一些问题 而出现的框架。
+
+传统MVC模式问题
+1，所有的 Servlet和Servlet映射都要配置在 web.xml中，如果项目太大， web.xml就太庞大，并且不能实现模块化管理。 
+2，Servlet的主要功能就是接受参数 、调用逻辑 、跳转页面 ，比如像其他字符编码、文件上传等功能也要写在 Servlet中，不能让 Servlet主要功能而需要做处理一下特例。 
+3、接受参数比较麻烦 (String name = request.getParameter(“name”),User user=new User user.setName(name))，不能通过 model接收，只能单个接收，接收完成后转换封装 model.
+4、跳转页面方式比较单一 (forword,redirect),并且当我的页面名称发生改变时需要修改 Servlet源代码 .
+ 
+现在比较常用的 MVC框架有：
+   struts
+   webwork
+   Struts2
+   Spring MVC
+
+
+
+事务：
+事务是并发控制的单位，是用户定义的一个操作序列。这些操作要么都做，要么都不做，是一个不可分割的工作单位。
+一个转账必须 A账号扣钱成功，B账号加钱成功，才算正真的转账成功。
+事务必须满足四大特征 :原子性 ,一致性 ,隔离性，持久性 /持续性
+ 原子性：表示事务内操作不可分割。要么都成功、要么都是失败 .
+ 一致性：要么都成功、要么都是失败 .后面的失败了要对前面的操作进行回滚。
+ 隔离性：一个事务开始后，不能后其他事务干扰。
+ 持久性 /持续性：表示事务开始了，就不能终止。
+
+
+msyql的分页？Oracle的分页？ 
+Mysql是使用关键字 limit来进行分页的  limit offset,size 表示从多少索引去多少位
+mysql:
+String sql = "select * from students order by id limit " + pageSize*(pageNumber-1) + "," + pageSize;
+Oracle的分页使用了三层嵌套查询。
+oracle:
+String sql = "select * from " +  
+(select *,rownum rid from (select * from students order by postime desc) where rid<=" + pagesize*pagenumber + ") as t" +
+"where t>" + pageSize*(pageNumber-1);
+例子：
+select *
+        from (select rownum r,
+        y.pdu,
+        y.version,
+        y.subsys,
+        y.mibTotal,
+        y.mibCoverage
+        from(select b.pdu,
+        b.version,
+        b.module subsys,
+        count(distinct b.guid) mibTotal,
+        count(distinct m.fk_mib) mibCoverage
+        from (select * from t_ens_mib_base a where 1=1
+        <if test="mvo.pdu != null and mvo.pdu != '' and mvo.pdu != 'ALL'">
+            and a.pdu=#{mvo.pdu}
+        </if>
+        <if test="mvo.version != null and mvo.version != '' and mvo.version != 'ALL'">
+            and a.version=#{mvo.version}
+        </if>
+        ) b
+        LEFT JOIN t_ens_mib_match m on m.fk_mib = b.guid
+        group by b.pdu, b.module, b.version
+        order by b.pdu, b.version desc)y
+        <![CDATA[
+				where rownum <= #{mvo.endRow})
+				where r > #{mvo.startRow}
+			]]>
+
+
+JDBC:
+Java只定义接口，让数据库厂商自己实现接口，对于我们者而言。只需要导入对应厂商开发的实现即可。
+然后以接口方式进行调用 (mysql + mysql驱动（实现） +jdbc)
+
+一个简单的jdbc的程序。写一个访问oracle数据的jdbc程序? 
+加载驱动(com.mysql.jdbc.Driver,oracle.jdbc.driver.OracleDriver)
+获取连接(DriverManager.getConnection(url,usernam,passord))
+设置参数  Statement PreparedStatement
+           cstmt.setXXX(index, value);
+执行   executeQuery executeUpdate
+释放连接(是否连接要从小到大，必须放到finnaly)
+
+JDBC中的PreparedStatement相比Statement的好处  
+大多数我们都使用PreparedStatement代替Statement
+
+1：PreparedStatement是预编译的，比 Statement速度快 
+2：代码的可读性和可维护性
+虽然用PreparedStatement来代替Statement会使代码多出几行,但这样的代码无论从可读性还是可维护性上来说.都比直接用 Statement的代码高很多档次：
+stmt.executeUpdate("insert into tb_name (col1,col2,col2,col4) values ('"+var1+"','"+var2+"',"+var3+",'"+var4+"')");
+
+perstmt = con.prepareStatement("insert into tb_name (col1,col2,col2,col4) values (?,?,?,?)");
+perstmt.setString(1,var1);
+perstmt.setString(2,var2);
+perstmt.setString(3,var3);
+perstmt.setString(4,var4);
+perstmt.executeUpdate();
+不用我多说,对于第一种方法，别说其他人去读你的代码，就是你自己过一段时间再去读,都会觉得伤心。
+ 
+3：安全性
+PreparedStatement可以防止 SQL注入攻击，而 Statement却不能。比如说：
+String sql = "select * from tb_name where name= '"+varname+"' and passwd='"+varpasswd+"'";
+如果我们把 [' or '1' = '1]作为varpasswd传入进来.用户名随意,看看会成为什么 ?
+select * from tb_name = '随意' and passwd = '' or '1' = '1';
+因为'1'='1'肯定成立，所以可以任何通过验证，更有甚者：
+把[';drop table tb_name;]作为varpasswd传入进来,则：
+select * from tb_name = '随意' and passwd = '';drop table tb_name;有些数据库是不会让你成功的，但也有很多数据库就可以使这些语句得到执行。
+而如果你使用预编译语句你传入的任何内容就不会和原来的语句发生任何匹配的关系，只要全使用预编译语句你就用不着对传入的数据做任何过虑。而如果使用普通的 statement,有可能要对 drop等做费尽心机的判断和过虑。
+
+
+AJAX：
+通过 AJAX与服务器进行数据交换， AJAX可以使网页实现布局更新。
+这意味着可以在不重新加载整个网页的情况下，对网页的某部分进行更新。
+  怎么来实现 Ajax XmlHttpRequest对象，使用这个对象可以异步向服务器发送请求，获取获取响应，完成局部更新。 Open send responseText/responseXML 局部响应 .
+  使用场景  登陆失败时不跳转页面，注册时提示用户名是否存在 ,二级联动等等使用场景
+
+
+struts2和springMVC有什么不同？ 
+目前企业中使用SpringMvc的比例已经远远超过Struts2,那么两者到底有什么区别，是很多初学者比较关注的问题，下面我们就来对 SpringMvc和Struts2进行各方面的比较 :
+ 
+1. 核 心控制器 （前端控制器、预处理控制器）：对于使用过 mvc框架的人来说这个词应该不会陌生，核心控制器的主要用途是处理所有的请求 ，然后对那些特殊的请求  （控制器）统一的进行处理 (字符编码、文件上传、参数接受、异常处理等等 ),spring mvc核心控制器是Servlet，而Struts2是Filter。
+2.控制器实例： Spring Mvc会比Struts快一些（理论上）。 Spring Mvc是基于方法设计 ，而Sturts是基于对象 ，每次发一次请求都会实例一个 action，每个 action都会被注入  属性，而 Spring更像Servlet一样，只有一个实例，每次请求执行对应的方法即可 (注意：由于是单例实例，所以应当避免全局变量的修改，这样会产生线程安全问题 )。
+3. 管理方式：大部分的公司的核心架构中，就会使用到spring,而spring mvc又是spring中的一个模块，所以spring对于spring mvc的控制器管理更加简单方便， 而且提供了全  注解方式进行管理，各种功能的注解都比较全面，使用简单，而 struts2需要采用 XML很多的配置参数来管理（虽然也可以采用注解，但是几乎没有公司那  样使用）。
+4.参数传递：Struts2中自身提供多种参数接受，其实都是通过（ValueStack）进行传递和赋值，而SpringMvc是通过方法的参数进行接收。
+5.学习难度： Struts更加很多新的技术点，比如拦截器、值栈及 OGNL表达式，学习成本较高， springmvc 比较简单，很较少的时间都能上手。
+6.intercepter 的实现机制：struts有以自己的interceptor机制，spring mvc用的是独立的AOP方式。这样导致 struts的配置文件量还是比 spring mvc大，虽然 struts的配置能继承，所以我觉得论使用上来讲， spring mvc使用更加简洁，开发效率 Spring MVC确实比 struts2高。spring mvc是方法级别的拦截，一个方法对应一个 request上下文，而方法同时又跟一个 url对应，所以说从架构本身上 spring3 mvc就容易实现 restful url。struts2是类级别的拦截，一个类对应一个 request上下文；实现 restful url要费劲，因为 struts2 action的一个方法可以对应一个 url；而其类属性却被所有方法共享，这也就无法用注解或其他方式标识其所属方法了。 spring3 mvc的方法之间基本上独立的，独享 request response数据，请求数据通过参数获取，处理结果通过 ModelMap交回给框架方法之间不共享变量，而 struts2搞的就比较乱，虽然方法之间  也是独立的，但其所有 Action变量是共享的，这不会影响程序运行，却给我们编码，读程序时带来麻烦。
+spring mvc处理ajax请求,直接通过返回数据，方法中使用注解@ResponseBody，spring mvc自动帮我们对象转换为JSON数据。而struts2是通过插件的方式进行处理 
+ 
+在SpringMVC流行起来之前，Struts2在MVC框架中占核心地位，随着SpringMVC的出现，SpringMVC慢慢的取代struts2,但是很多企业都是原来搭建的框架，使用Struts2较多。
+
+
+spring：
+spring是J2EE应用程序框架 ，是轻量级的IoC和AOP的容器框架(相对于重量级的EJB)，主要是针对 javaBean的生命周期进行管理的轻量级容器 ，可以单独使用，也可以和 Struts框架， ibatis框架等组合使用。
+ 
+IOC(Inversion of Control )或DI(Dependency Injection) 
+       IOC控制权反转
+           原来：我的Service需要调用 DAO，Service就需要创建 DAO
+          Spring:Spring发现你 Service依赖于 dao,就给你注入 .
+       核心原理：就是配置文件+反射(工厂也可以)+容器(map)  
+AOP:面向切面编程 
+       核心原理 ：使用动态代理 的设计模式在执行方法前后或出现异常做加入相关逻辑 。
+       我们主要使用 AOP来做：
+      1、事务处理
+      2、权限判断
+      3、日志
+      4、....
+
+
+ORM：
+对象关系映射（Object Relational Mapping，简称 ORM）模式是一种为了解决面向对象 与关系数据库存在的互不匹配的现象的技术 。简单的说， ORM是通过使用描述对象和数据库之间映射的元数据，将程序中的对象自动持久化到关系数据库中。那么，到底如何实现持久化呢？一种简单的方案是采用硬编码方式(jdbc操作sql方式)，为每一种可能的数据库访问操作提供单独的方法。
+这种方案存在以下不足：  
+    1.持久化层缺乏弹性。一旦出现业务需求的变更，就必须修改持久化层的接口  
+    2.持久化层同时与域模型与关系数据库模型绑定，不管域模型还是关系数据库模型发生变化，都要修改持久化曾的相关程序代码，增加了软件的维护难度。  
+ 
+   ORM提供了实现持久化层的另一种模式 ，它采用映射元数据来描述对象关系的映射，使得 ORM中间件能在任何一个应用的业务逻辑层和数据库层之间充当桥梁。 Java典型的ORM框架有:Hibernate,ibatis(mybatis),speedframework。
+   ORM的方法论基于三个核心原则：  
+　　   简单：以最基本的形式建模数据。  
+　　   传达性：数据库结构被任何人都能理解的语言文档化。  
+　　   精确性：基于数据模型创建正确标准化了的结构。
+
+
+mybatis与Hibernate有什么不同?
+相同点：
+   都是java中orm框架、屏蔽 jdbc api的底层访问细节，使用我们不用与 jdbc api打交道，就可以完成对数据库的持久化操作 。jdbc api编程流程固定，还将 sql语句与 java代码混杂在了一起，经常需要拼凑 sql语句，细节很繁琐。
+   ibatis的好处：屏蔽 jdbc api的底层访问细节；将 sql语句与 java代码进行分离 ;提供了将结果集自动封装称为实体对象和对象的集合的功能 .queryForList返回对象集合，用 queryForObject返回单个对象；提供了自动将实体对象的属性传递给 sql语句的参数。
+ 
+   Hibername的好处： Hibernate是一个全自动的 orm映射工具，它可以自动生成 sql语句，并执行并返回 java结果。
+ 
+不同点：
+   1、hibernate要比ibatis功能强大很多。因为 hibernate自动生成 sql语句。
+   2、ibatis需要我们自己在 xml配置文件中写 sql语句， hibernate我们无法直接控制该语句，我们就无法去写特定的高效率的 sql。对于一些不太复杂的 sql查询， hibernate可以很好帮我们完成，但是，对于特别复杂的查询， hibernate就很难适应了，这时候用 ibatis就是不错的选择，因为 ibatis还是由我们自己写 sql语句。
+  ibatis可以出来复杂语句，而hibernate不能。
+   3、ibatis要比hibernate简单的多。 ibatis是面向 sql的，不同考虑对象间一些复杂的映射关系。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
