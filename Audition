@@ -368,6 +368,7 @@ interface Door {
 包含open和close两种行为。再设计一个报警门继承Door类和实现Alarm接口。
 
 
+VUE的生命周期：
 
 
 
